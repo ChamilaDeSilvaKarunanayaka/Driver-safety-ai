@@ -5,6 +5,7 @@ import numpy as np
 import onnxruntime as ort
 import os
 import mediapipe as mp
+import time # Used for timestamp calculations in the rolling 15-second alert window
 
 # ==========================================
 # 1. HIGH-ACCURACY MEDIAPIPE INITIALIZATION
@@ -51,7 +52,7 @@ SIDE_LIMIT = 75
 app = Flask(__name__)
 CORS(app) 
 
-# --- EXTENDED EXPANDED STATS OBJECT FOR CAR DASHBOARD UI ---
+# --- EXPANDED STATS FOR SIDE GAUGE & ADVANCED STOP LOGIC ---
 stats = {
     "drowsy_events": 0,
     "phone_events": 0,
@@ -61,12 +62,33 @@ stats = {
     "current_side_score": 0,
     "l_ear": 0.0,
     "r_ear": 0.0,
-    "v_gaze": 0.0
+    "v_gaze": 0.0,
+    "is_emergency_stop": False # Tells frontend to trigger the ultimate shutdown screen
 }
 
 drowsy_counter = 0
 phone_counter = 0
 side_counter = 0
+
+drowsy_alert_triggered = False
+phone_alert_triggered = False
+side_alert_triggered = False
+
+# Dynamic array to log timestamps of alerts within the sliding time window
+alert_timestamps = []
+
+def register_alert_event():
+    """Logs an alert timestamp and flags emergency stop if 3 alerts occur within 15 seconds."""
+    global alert_timestamps, stats
+    current_time = time.time()
+    alert_timestamps.append(current_time)
+    
+    # Filter out timestamps older than 15 seconds
+    alert_timestamps = [t for t in alert_timestamps if current_time - t <= 15]
+    
+    # If 3 or more alerts are detected within the 15s window, trigger system shutdown
+    if len(alert_timestamps) >= 3:
+        stats["is_emergency_stop"] = True
 
 # ==========================================
 # 4. HELPER FUNCTIONS
@@ -138,6 +160,8 @@ def preprocess_eye_onnx(eye_img):
 # ==========================================
 def generate_frames():
     global drowsy_counter, phone_counter, side_counter, stats
+    global drowsy_alert_triggered, phone_alert_triggered, side_alert_triggered
+    
     cap = cv2.VideoCapture(0)
 
     with mp_face_mesh.FaceMesh(
@@ -158,12 +182,19 @@ def generate_frames():
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
+            # If face is lost completely (Side Distraction alternative)
             if not results.multi_face_landmarks:
                 side_counter += 1
                 phone_counter = 0
                 drowsy_counter = 0
-                if side_counter >= SIDE_LIMIT:
+                
+                stats["current_side_score"] = side_counter
+                stats["current_drowsy_score"] = 0
+                stats["current_phone_score"] = 0
+
+                if side_counter == SIDE_LIMIT:
                     stats["side_events"] += 1
+                    register_alert_event() # Evaluate rolling time window rule
             
             else:
                 for face_landmarks in results.multi_face_landmarks:
@@ -173,7 +204,6 @@ def generate_frames():
                     right_ear = calculate_ear(landmarks, RIGHT_EYE_VERT_1, RIGHT_EYE_VERT_2, RIGHT_EYE_HORIZ, img_w, img_h)
                     h_gaze, v_gaze = check_gaze_distraction(landmarks, img_w, img_h)
 
-                    # Update real-time metric floats for UI gauges
                     stats["l_ear"] = round(float(left_ear), 2)
                     stats["r_ear"] = round(float(right_ear), 2)
                     stats["v_gaze"] = round(float(v_gaze), 2)
@@ -188,7 +218,7 @@ def generate_frames():
                     turn_ratio = abs(nose[0] - left_bound[0]) / (abs(nose[0] - left_bound[0]) + abs(nose[0] - right_bound[0]) + 1e-6)
                     vertical_ratio = abs(nose[1] - forehead_mid[1]) / (abs(chin_top[1] - nose[1]) + 1e-6)
 
-                    # AI Model Inference
+                    # AI Inference
                     ai_sleepy_trigger = False
                     left_eye_crop = crop_eye_region(image, landmarks, LEFT_EYE_CROP_INDICES, img_w, img_h)
                     right_eye_crop = crop_eye_region(image, landmarks, RIGHT_EYE_CROP_INDICES, img_w, img_h)
@@ -202,7 +232,7 @@ def generate_frames():
                             if pred_l > AI_THRESHOLD and pred_r > AI_THRESHOLD:
                                 ai_sleepy_trigger = True
 
-                    # State machine checks
+                    # State machine calculations
                     is_looking_sideways = (turn_ratio < 0.28 or turn_ratio > 0.72 or h_gaze < 0.33 or h_gaze > 0.67)
                     is_both_eyes_closed = (left_ear < EAR_THRESHOLD and right_ear < EAR_THRESHOLD)
                     
@@ -223,22 +253,48 @@ def generate_frames():
                     else:
                         side_counter = 0
 
-                    # --- SET LIVE TICK SCORES TO SYNC WITH CAR UI ---
+                    # Sync counters instantly with telemetry dictionary
                     stats["current_drowsy_score"] = drowsy_counter
                     stats["current_phone_score"] = phone_counter
                     stats["current_side_score"] = side_counter
 
-                    # --- TRIGGER CRITICAL SYSTEMS ---
-                    if drowsy_counter == DROWSY_LIMIT:
-                        stats["drowsy_events"] += 1
-                    
-                    if phone_counter == PHONE_LIMIT:
-                        stats["phone_events"] += 1
-                    
-                    if side_counter == SIDE_LIMIT:
-                        stats["side_events"] += 1
+                    # --- CONDITIONAL EVENT LOGIC & SLIDING WINDOW EVALUATION ---
+                    # ---- DROWSY STABLE ALERT TRIGGER ----
+                    if drowsy_counter >= DROWSY_LIMIT:
+                        if not drowsy_alert_triggered:
+                            # This block executes strictly ONCE per drowsiness episode
+                            stats["drowsy_events"] += 1
+                            register_alert_event()
+                            drowsy_alert_triggered = True # Lock it until counter completely resets
+                    else:
+                        if drowsy_counter == 0:
+                            drowsy_alert_triggered = False # Unlock only when user is fully safe/alert
 
-                    # Draw high-end facial grid
+
+                    # ---- PHONE STABLE ALERT TRIGGER ----
+                    if phone_counter >= PHONE_LIMIT:
+                        if not phone_alert_triggered:
+                            # This block executes strictly ONCE per phone usage episode
+                            stats["phone_events"] += 1
+                            register_alert_event()
+                            phone_alert_triggered = True # Lock it
+                    else:
+                        if phone_counter == 0:
+                            phone_alert_triggered = False # Unlock only when phone is completely put away
+
+
+                    # ---- SIDE DISTRACTION STABLE ALERT TRIGGER ----
+                    if side_counter >= SIDE_LIMIT:
+                        if not side_alert_triggered:
+                            # This block executes strictly ONCE per side distraction episode
+                            stats["side_events"] += 1
+                            register_alert_event()
+                            side_alert_triggered = True # Lock it
+                    else:
+                        if side_counter == 0:
+                            side_alert_triggered = False # Unlock only when user looks straight back at the road
+
+                    # Render facial mesh overlay lines
                     try:
                         mp_drawing.draw_landmarks(
                             image=image, landmark_list=face_landmarks,
@@ -260,6 +316,27 @@ def video_feed():
 @app.route('/api/stats')
 def get_stats():
     return jsonify(stats)
+
+# Endpoint to manually clear system lockdown status from the UI layout if required
+@app.route('/api/reset', methods=['POST'])
+def reset_lockdown():
+    global alert_timestamps, stats, drowsy_counter, phone_counter, side_counter
+    global drowsy_alert_triggered, phone_alert_triggered, side_alert_triggered
+    
+    alert_timestamps = []
+    drowsy_counter = 0
+    phone_counter = 0
+    side_counter = 0
+    
+    drowsy_alert_triggered = False
+    phone_alert_triggered = False
+    side_alert_triggered = False
+    
+    stats["is_emergency_stop"] = False
+    stats["current_drowsy_score"] = 0
+    stats["current_phone_score"] = 0
+    stats["current_side_score"] = 0
+    return jsonify({"status": "success"})
 
 if __name__ == "__main__":
     app.run(port=5000)
