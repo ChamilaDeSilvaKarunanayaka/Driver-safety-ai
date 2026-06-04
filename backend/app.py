@@ -44,15 +44,26 @@ RIGHT_EYE_CROP_INDICES = [362, 385, 387, 263, 373, 380]
 EAR_THRESHOLD = 0.17           
 AI_THRESHOLD = 0.75            
 
-DROWSY_LIMIT = 10        # Trigger after 10 frames of both eyes closed
-PHONE_LIMIT = 12         # Trigger after 12 frames of looking down
+DROWSY_LIMIT = 10        
+PHONE_LIMIT = 12         
 SIDE_LIMIT = 75          
 
 app = Flask(__name__)
 CORS(app) 
 
-# Global counters
-stats = {"drowsy": 0, "phone": 0, "side": 0}
+# --- EXTENDED EXPANDED STATS OBJECT FOR CAR DASHBOARD UI ---
+stats = {
+    "drowsy_events": 0,
+    "phone_events": 0,
+    "side_events": 0,
+    "current_drowsy_score": 0,
+    "current_phone_score": 0,
+    "current_side_score": 0,
+    "l_ear": 0.0,
+    "r_ear": 0.0,
+    "v_gaze": 0.0
+}
+
 drowsy_counter = 0
 phone_counter = 0
 side_counter = 0
@@ -74,7 +85,7 @@ def calculate_ear(landmarks, vert_1, vert_2, horiz, img_w, img_h):
         dist_h  = np.linalg.norm(p_h_left - p_h_right)
         return (dist_v1 + dist_v2) / (2.0 * dist_h)
     except Exception:
-        return 1.0 # Return high value to avoid false triggers if calculation fails
+        return 1.0 
 
 def check_gaze_distraction(landmarks, img_w, img_h):
     try:
@@ -126,7 +137,7 @@ def preprocess_eye_onnx(eye_img):
 # 5. CORE CAMERA RUNTIME LOOP
 # ==========================================
 def generate_frames():
-    global drowsy_counter, phone_counter, side_counter
+    global drowsy_counter, phone_counter, side_counter, stats
     cap = cv2.VideoCapture(0)
 
     with mp_face_mesh.FaceMesh(
@@ -152,18 +163,20 @@ def generate_frames():
                 phone_counter = 0
                 drowsy_counter = 0
                 if side_counter >= SIDE_LIMIT:
-                    stats["side"] += 1
-                    cv2.putText(image, "SIDE DISTRACTION (FACE LOST)!", (30, 250), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+                    stats["side_events"] += 1
             
             else:
                 for face_landmarks in results.multi_face_landmarks:
                     landmarks = face_landmarks.landmark
                     
-                    # --- CALCULATE CORE FEATURES ---
                     left_ear = calculate_ear(landmarks, LEFT_EYE_VERT_1, LEFT_EYE_VERT_2, LEFT_EYE_HORIZ, img_w, img_h)
                     right_ear = calculate_ear(landmarks, RIGHT_EYE_VERT_1, RIGHT_EYE_VERT_2, RIGHT_EYE_HORIZ, img_w, img_h)
-                    
                     h_gaze, v_gaze = check_gaze_distraction(landmarks, img_w, img_h)
+
+                    # Update real-time metric floats for UI gauges
+                    stats["l_ear"] = round(float(left_ear), 2)
+                    stats["r_ear"] = round(float(right_ear), 2)
+                    stats["v_gaze"] = round(float(v_gaze), 2)
 
                     # Head Pose Features
                     nose = np.array([landmarks[1].x * img_w, landmarks[1].y * img_h])
@@ -186,19 +199,11 @@ def generate_frames():
                         if prep_left is not None and prep_right is not None:
                             pred_l = ort_session.run(None, {input_name: prep_left})[0][0][0]
                             pred_r = ort_session.run(None, {input_name: prep_right})[0][0][0]
-                            # Both eyes must be detected as closed by AI model
                             if pred_l > AI_THRESHOLD and pred_r > AI_THRESHOLD:
                                 ai_sleepy_trigger = True
 
-                    # ==========================================
-                    # STATE MACHINE LOGIC ENGINE
-                    # ==========================================
-                    
-                    # 1. SIDE LOOK CONDITION
+                    # State machine checks
                     is_looking_sideways = (turn_ratio < 0.28 or turn_ratio > 0.72 or h_gaze < 0.33 or h_gaze > 0.67)
-                    
-                    # 2. DROWSY CONDITION (STRICT: BOTH EYES MUST BE CLOSED)
-                    # Drowsiness is triggered if BOTH eyes are below EAR threshold OR BOTH eyes detected as closed by AI
                     is_both_eyes_closed = (left_ear < EAR_THRESHOLD and right_ear < EAR_THRESHOLD)
                     
                     if (is_both_eyes_closed or ai_sleepy_trigger) and not is_looking_sideways:
@@ -206,8 +211,6 @@ def generate_frames():
                     else:
                         drowsy_counter = max(0, drowsy_counter - 1)
                         
-                    # 3. PHONE / LOOK DOWN CONDITION (SENSITIVE)
-                    # If head pitch is low or iris gaze is very low, it's a phone distraction
                     is_looking_at_phone = (vertical_ratio < 0.90 or v_gaze > 0.65)
                     
                     if is_looking_at_phone and not is_both_eyes_closed and not is_looking_sideways:
@@ -215,38 +218,27 @@ def generate_frames():
                     else:
                         phone_counter = 0
 
-                    # 4. SIDE LOOK COUNTER
                     if is_looking_sideways:
                         side_counter += 1
                     else:
                         side_counter = 0
 
-                    # --- TELEMETRY DISPLAY ---
-                    cv2.putText(image, f"L_EAR: {left_ear:.2f} | R_EAR: {right_ear:.2f} | V_Gaze: {v_gaze:.2f}", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
-                    cv2.putText(image, f"Drowsy: {drowsy_counter}/{DROWSY_LIMIT} | Phone: {phone_counter}/{PHONE_LIMIT} | Side: {side_counter}/{SIDE_LIMIT}", 
-                                (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 0), 2)
+                    # --- SET LIVE TICK SCORES TO SYNC WITH CAR UI ---
+                    stats["current_drowsy_score"] = drowsy_counter
+                    stats["current_phone_score"] = phone_counter
+                    stats["current_side_score"] = side_counter
 
-                    # --- TRIGGER SYSTEM ALERTS ---
-                    
-                    # 1. Drowsy Alert Fix
+                    # --- TRIGGER CRITICAL SYSTEMS ---
                     if drowsy_counter == DROWSY_LIMIT:
-                        stats["drowsy"] += 1 # Count increases only ONCE per event
-                    if drowsy_counter >= DROWSY_LIMIT:
-                        cv2.putText(image, "DROWSY ALERT!", (30, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+                        stats["drowsy_events"] += 1
                     
-                    # 2. Phone Alert Fix
                     if phone_counter == PHONE_LIMIT:
-                        stats["phone"] += 1 # Count increases only ONCE per event
-                    if phone_counter >= PHONE_LIMIT:
-                        cv2.putText(image, "PHONE / DOWN ALERT!", (30, 200), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 165, 255), 3)
+                        stats["phone_events"] += 1
                     
-                    # 3. Side Distraction Alert Fix
                     if side_counter == SIDE_LIMIT:
-                        stats["side"] += 1 # Count increases only ONCE per event
-                    if side_counter >= SIDE_LIMIT:
-                        cv2.putText(image, "SIDE DISTRACTION!", (30, 250), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 255), 3)
+                        stats["side_events"] += 1
 
-                    # Draw Mesh Contours
+                    # Draw high-end facial grid
                     try:
                         mp_drawing.draw_landmarks(
                             image=image, landmark_list=face_landmarks,
@@ -263,12 +255,10 @@ def generate_frames():
 
 @app.route('/video_feed')
 def video_feed():
-    # This route streams the video to the browser
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/stats')
 def get_stats():
-    # This route provides the data for your dashboard
     return jsonify(stats)
 
 if __name__ == "__main__":
