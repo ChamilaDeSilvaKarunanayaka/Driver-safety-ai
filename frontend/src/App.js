@@ -1,5 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './App.css';
+
+// SVG Icons
+const Icons = {
+  MainLogo: () => (
+    <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+      <path d="M2 17l10 5 10-5"></path>
+      <path d="M2 12l10 5 10-5"></path>
+    </svg>
+  ),
+  Radar: ({ color }) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2"/>
+      <path d="M12 2v20M2 12h20"/>
+    </svg>
+  ),
+  Bell: ({ color }) => (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+  ),
+  Wheel: ({ color }) => (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M12 2v10"></path>
+      <path d="m12 12 8.5 5"></path>
+      <path d="M12 12 3.5 17"></path>
+      <path d="M20.5 7A10.5 10.5 0 0 0 12 1.5"></path>
+    </svg>
+  ),
+  Shield: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  ),
+  Bluetooth: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6.5 6.5 11 11L12 23V1l5.5 5.5-11 11"></path>
+    </svg>
+  ),
+  Signal: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"></path>
+    </svg>
+  ),
+  Warning: ({ color }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  ),
+  Phone: ({ color }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  ),
+  Eye: ({ color }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  )
+};
 
 function App() {
   const [stats, setStats] = useState({
@@ -9,16 +77,15 @@ function App() {
     current_drowsy_score: 0,
     current_phone_score: 0,
     current_side_score: 0,
-    l_ear: 0.0,
-    r_ear: 0.0,
-    v_gaze: 0.0,
+    l_ear: 0.30,
+    r_ear: 0.31,
+    v_gaze: 0.37,
     is_emergency_stop: false
   });
 
   const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
-    // Rapid polling loop to track responsive gauge changes
     const interval = setInterval(() => {
       axios.get('http://localhost:5000/api/stats')
         .then(res => setStats(res.data))
@@ -27,7 +94,7 @@ function App() {
 
     const timeInterval = setInterval(() => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     }, 1000);
 
     return () => {
@@ -36,232 +103,201 @@ function App() {
     };
   }, []);
 
-  // UI Active State evaluation parameters
   const isDrowsyActive = stats.current_drowsy_score >= 10;
   const isPhoneActive = stats.current_phone_score >= 12;
   const isSideActive = stats.current_side_score >= 75;
   const isAnyAlarmRinging = isDrowsyActive || isPhoneActive || isSideActive;
-
-  // Handler to clear hard system lockdown via backend trigger route
-  const handleSystemReset = () => {
-    axios.post('http://localhost:5000/api/reset')
-      .then(() => console.log("System override approved. Driving mode restored."));
-  };
+  
+  const mainColor = isAnyAlarmRinging ? '#ff0d00' : '#00ff33';
 
   return (
-    <div style={styles.dashboardContainer}>
-      
-      {/* ====================================================
-          TOP NOTCH HEAD BAR - AUTO-RESET DRIVING MODES
-         ==================================================== */}
-      <div style={styles.topHeader}>
-        <div style={styles.brandTitle}>MBUX LUXURY INTELLIGENCE</div>
+    <div className="dashboard-container">
+      {/* TOP HEADER */}
+      <div className="top-header">
+        <div className="header-left">
+          <Icons.MainLogo />
+          <span className="brand-text"><strong>DRIVER</strong> SAFETY AI</span>
+        </div>
         
-        <div style={{
-          ...styles.drivingModeBar,
-          borderColor: stats.is_emergency_stop ? '#ff0033' : isAnyAlarmRinging ? '#ffcc00' : '#00ff66',
-          boxShadow: stats.is_emergency_stop ? '0 0 15px #ff0033' : isAnyAlarmRinging ? '0 0 15px #ffcc00' : '0 0 15px #00ff66'
-        }}>
-          <span style={{
-            ...styles.pulseDot,
-            backgroundColor: stats.is_emergency_stop ? '#ff0033' : isAnyAlarmRinging ? '#ffcc00' : '#00ff66',
-            animation: 'ping 1.2s infinite'
-          }}></span>
-          <span style={{ color: stats.is_emergency_stop ? '#ff0033' : isAnyAlarmRinging ? '#ffcc00' : '#00ff66', fontWeight: 'bold', letterSpacing: '2px' }}>
-            {stats.is_emergency_stop ? "EMERGENCY SHUTDOWN: 3 FAILS IN 15S" : isAnyAlarmRinging ? "WARNING: ALARM ACTIVE" : "DRIVING MODE ACTIVE"}
+        <div className={`driving-mode-badge ${isAnyAlarmRinging ? 'alarm-active' : 'mode-active'}`}>
+          <div className="radar-icon">
+            <Icons.Radar color={mainColor} />
+            <div className="radar-ping" style={{borderColor: mainColor}}></div>
+          </div>
+          <span className="mode-text">
+            {stats.is_emergency_stop ? "EMERGENCY SHUTDOWN" : isAnyAlarmRinging ? "WARNING: ALARM ACTIVE" : "DRIVING MODE ACTIVE"}
           </span>
         </div>
 
-        <div style={styles.topRightWidgets}>
-          <span>{currentTime}</span>
-          <span style={{ marginLeft: '15px', color: '#00ff66' }}>ONLINE 📶</span>
+        <div className="header-right">
+          <span className="time-text">{currentTime} AM</span>
+          <span className="network-text">4G</span>
+          <Icons.Signal />
+          <Icons.Bluetooth />
+          <Icons.Shield />
         </div>
       </div>
 
-      {/* ====================================================
-          MAIN DASHBOARD SPLIT GRID SYSTEM
-         ==================================================== */}
-      <div style={styles.mainGrid}>
-        
-        {/* LEFT COLUMN: GAUGE GRID PANELS */}
-        <div style={styles.leftControlPanel}>
-          <div style={styles.panelTitle}>BIOMETRIC VISION TELEMETRY</div>
+      <div className="main-grid">
+        {/* LEFT PANEL */}
+        <div className="left-panel">
+          <div className="panel-title">DRIVER SAFETY DASHBOARD</div>
           
-          <div style={styles.microRow}>
-            <div style={styles.microCard}><h5>L.EAR</h5><p>{stats.l_ear}</p></div>
-            <div style={styles.microCard}><h5>R.EAR</h5><p>{stats.r_ear}</p></div>
-            <div style={styles.microCard}><h5>V.GAZE</h5><p>{stats.v_gaze}</p></div>
+          <div className="telemetry-row">
+            <div className="telemetry-box">
+              <div className="t-label">L.EAR</div>
+              <div className="t-val">{stats.l_ear.toFixed(2)}</div>
+            </div>
+            <div className="telemetry-box">
+              <div className="t-label">R.EAR</div>
+              <div className="t-val">{stats.r_ear.toFixed(2)}</div>
+            </div>
+            <div className="telemetry-box">
+              <div className="t-label">V.GAZE</div>
+              <div className="t-val">{stats.v_gaze.toFixed(2)}</div>
+            </div>
           </div>
 
-          {/* FUTURISTIC THREE-GAUGE COMPACT MATRIX */}
-          <div style={styles.gaugeContainerRow}>
+          <div className="gauges-row">
+            {/* DROWSY */}
+            <div className={`gauge-container ${isDrowsyActive ? 'gauge-danger-active' : 'gauge-danger'}`}>
+              <div className="gauge-circle">
+                <svg viewBox="0 0 100 100" className="gauge-svg">
+                  <circle cx="50" cy="50" r="45" className="gauge-bg" />
+                  <circle cx="50" cy="50" r="45" className="gauge-progress" strokeDasharray="283" strokeDashoffset={283 - (Math.min(10, stats.current_drowsy_score)/10)*283} />
+                </svg>
+                <div className="gauge-content">
+                  <div className="g-title">DROWSY</div>
+                  <div className="g-value">{stats.current_drowsy_score}</div>
+                  <div className="g-max">/ 10</div>
+                  <div className="g-icon"><Icons.Warning color={isDrowsyActive ? '#ff0d00' : '#444'} /></div>
+                </div>
+              </div>
+            </div>
+
+            {/* PHONE USAGE */}
+            <div className={`gauge-container ${isPhoneActive ? 'gauge-cyan-active' : 'gauge-cyan'}`}>
+              <div className="gauge-circle">
+                <svg viewBox="0 0 100 100" className="gauge-svg">
+                  <circle cx="50" cy="50" r="45" className="gauge-bg" />
+                  <circle cx="50" cy="50" r="45" className="gauge-progress" strokeDasharray="283" strokeDashoffset={283 - (Math.min(12, stats.current_phone_score)/12)*283} />
+                </svg>
+                <div className="gauge-content">
+                  <div className="g-title">PHONE USAGE</div>
+                  <div className="g-value">{stats.current_phone_score}</div>
+                  <div className="g-max">/ 12</div>
+                  <div className="g-icon"><Icons.Phone color={isPhoneActive ? '#00e5ff' : '#444'} /></div>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDE EYE (Kept as 3rd gauge per user request) */}
+            <div className={`gauge-container ${isSideActive ? 'gauge-green-active' : 'gauge-green'}`}>
+              <div className="gauge-circle">
+                <svg viewBox="0 0 100 100" className="gauge-svg">
+                  <circle cx="50" cy="50" r="45" className="gauge-bg" />
+                  <circle cx="50" cy="50" r="45" className="gauge-progress" strokeDasharray="283" strokeDashoffset={283 - (Math.min(75, stats.current_side_score)/75)*283} />
+                </svg>
+                <div className="gauge-content">
+                  <div className="g-title">SIDE EYE</div>
+                  <div className="g-value">{stats.current_side_score}</div>
+                  <div className="g-max">/ 75</div>
+                  <div className="g-icon"><Icons.Eye color={isSideActive ? '#00ff33' : '#444'} /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="progress-bars">
+            <div className="progress-row">
+              <div className="p-text">DROWSY COUNT</div>
+              <div className="p-text-val highlight-red">{stats.drowsy_events} / 10</div>
+            </div>
+            <div className="progress-bar-bg"><div className="progress-bar-fill red-fill" style={{width: `${Math.min(100, (stats.drowsy_events/10)*100)}%`}}></div></div>
+
+            <div className="progress-row">
+              <div className="p-text">PHONE USAGE</div>
+              <div className="p-text-val highlight-cyan">{stats.phone_events} / 12</div>
+            </div>
+            <div className="progress-bar-bg"><div className="progress-bar-fill cyan-fill" style={{width: `${Math.min(100, (stats.phone_events/12)*100)}%`}}></div></div>
+
+            <div className="progress-row">
+              <div className="p-text">SEAT BELT</div>
+              <div className="p-text-val highlight-green">FASTENED</div>
+            </div>
+            <div className="progress-bar-bg"><div className="progress-bar-fill green-fill" style={{width: `100%`}}></div></div>
+
+            <div className="progress-row">
+              <div className="p-text">DISTRACTION LEVEL</div>
+              <div className="p-text-val highlight-green">LOW</div>
+            </div>
+            <div className="progress-bar-bg"><div className="progress-bar-fill green-fill" style={{width: `20%`}}></div></div>
+          </div>
+
+          <div className="bottom-actions">
+            <div className={`action-card alarm-card ${isAnyAlarmRinging ? 'ringing' : ''}`}>
+              <div className="a-icon"><Icons.Bell color="#ff0d00" /></div>
+              <div className="a-text">
+                <div className="a-title">ALARM</div>
+                <div className="a-sub">HIGH ALERT</div>
+              </div>
+            </div>
+
+            <div className="action-card auto-stop-card">
+              <div className="a-icon"><Icons.Wheel color="#00e5ff" /></div>
+              <div className="a-text">
+                <div className="a-title">AUTO-STOP</div>
+                <div className="a-sub">TAKE A BREAK</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="right-panel">
+          <div className="camera-feed-container">
+            <div className="feed-header">
+              <div className="f-left"><span className="dot green"></span> LIVE FEED</div>
+              <div className="f-right">TRACKING</div>
+            </div>
+            <div className="feed-sub">1080p / 30fps</div>
             
-            {/* Drowsy Meter */}
-            <div style={styles.gaugeWrapper}>
-              <div style={{
-                ...styles.circularGaugeOuter,
-                borderColor: isDrowsyActive ? '#ff0033' : '#00e5ff',
-                boxShadow: isDrowsyActive ? '0 0 15px #ff0033' : 'none'
-              }}>
-                <div style={styles.gaugeInnerContent}>
-                  <span style={styles.gaugeLabel}>DROWSY</span>
-                  <span style={{...styles.gaugeValue, color: isDrowsyActive ? '#ff0033' : '#fff'}}>{stats.current_drowsy_score}</span>
-                  <span style={styles.gaugeMax}>/ 10</span>
-                </div>
-              </div>
+            <div className="video-wrapper">
+              <img src="http://localhost:5000/video_feed" alt="Live Stream" className="camera-image" />
             </div>
-
-            {/* Phone Meter */}
-            <div style={styles.gaugeWrapper}>
-              <div style={{
-                ...styles.circularGaugeOuter,
-                borderColor: isPhoneActive ? '#ff0033' : '#00e5ff',
-                boxShadow: isPhoneActive ? '0 0 15px #ff0033' : 'none'
-              }}>
-                <div style={styles.gaugeInnerContent}>
-                  <span style={styles.gaugeLabel}>PHONE</span>
-                  <span style={{...styles.gaugeValue, color: isPhoneActive ? '#ff0033' : '#fff'}}>{stats.current_phone_score}</span>
-                  <span style={styles.gaugeMax}>/ 12</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ADDED: Side Distraction Meter */}
-            <div style={styles.gaugeWrapper}>
-              <div style={{
-                ...styles.circularGaugeOuter,
-                borderColor: isSideActive ? '#ff0033' : '#00e5ff',
-                boxShadow: isSideActive ? '0 0 15px #ff0033' : 'none'
-              }}>
-                <div style={styles.gaugeInnerContent}>
-                  <span style={styles.gaugeLabel}>SIDE EYE</span>
-                  <span style={{...styles.gaugeValue, color: isSideActive ? '#ff0033' : '#fff'}}>{stats.current_side_score}</span>
-                  <span style={styles.gaugeMax}>/ 75</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div style={styles.linearStatusSection}>
-            <div style={styles.linearRow}><span>DROWSY EVENTS SIGNALS</span><span style={{color: '#ff3333'}}>{stats.drowsy_events}</span></div>
-            <div style={styles.linearRow}><span>PHONE EVENTS SIGNALS</span><span style={{color: '#ffcc00'}}>{stats.phone_events}</span></div>
-            <div style={styles.linearRow}><span>SIDE DISTRACT EVENTS</span><span style={{color: '#bc00ff'}}>{stats.side_events}</span></div>
-          </div>
-
-          <div style={styles.bottomIconRow}>
-            {/* Alarm Siren Box Component */}
-            <div style={{
-              ...styles.actionCard,
-              borderColor: isAnyAlarmRinging ? '#ff0033' : '#222',
-              backgroundColor: isAnyAlarmRinging ? 'rgba(255, 0, 51, 0.15)' : '#0d0d0d',
-              animation: isAnyAlarmRinging ? 'blink 0.5s infinite alternate' : 'none'
-            }}>
-              <span style={{ fontSize: '24px', marginRight: '10px' }}>🚨</span>
-              <div>
-                <div style={{ fontSize: '11px', color: '#888' }}>SIREN STATUS</div>
-                <div style={{ fontSize: '13px', color: isAnyAlarmRinging ? '#ff0033' : '#fff', fontWeight: 'bold' }}>
-                  {isAnyAlarmRinging ? "SOUNDING ALARM" : "SILENT READY"}
-                </div>
-              </div>
-            </div>
-
-            {/* Emergency Lockdown Stop Component Box */}
-            <div style={{
-              ...styles.actionCard,
-              borderColor: stats.is_emergency_stop ? '#ffcc00' : '#222',
-              backgroundColor: stats.is_emergency_stop ? 'rgba(255, 204, 0, 0.2)' : '#0d0d0d'
-            }}>
-              <span style={{ fontSize: '24px', marginRight: '10px' }}>🛑</span>
-              <div>
-                <div style={{ fontSize: '11px', color: '#888' }}>AUTO-LOCK</div>
-                <div style={{ fontSize: '13px', color: stats.is_emergency_stop ? '#ffcc00' : '#fff', fontWeight: 'bold' }}>
-                  {stats.is_emergency_stop ? "ENGINE KILLED" : "STANDBY OK"}
-                </div>
-              </div>
+            
+            <div className="feed-footer">
+              <div className="ff-stats">L.EAR: <strong>{stats.l_ear.toFixed(2)}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; R.EAR: <strong>{stats.r_ear.toFixed(2)}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; V.GAZE: <strong>{stats.v_gaze.toFixed(2)}</strong></div>
+              <div className="ff-right">FPS: <strong>30</strong> &nbsp;&nbsp;&nbsp;&nbsp; STATUS: <strong className="highlight-green">OK</strong></div>
             </div>
           </div>
 
-          {/* Manual Reset button visible during critical lockouts */}
-          {stats.is_emergency_stop && (
-            <button onClick={handleSystemReset} style={styles.overrideButton}>
-              MANUAL SYSTEM OVERRIDE / RESET ENGINE
-            </button>
-          )}
-
-        </div>
-
-        {/* RIGHT COLUMN: REFRESHED LIVE FEED */}
-        <div style={styles.rightFeedPanel}>
-          <div style={styles.feedHeaderRow}>
-            <div>🔴 HIGH-DEFINITION INFOTAINMENT CONSOLE STREAM</div>
-            <div style={{ color: isAnyAlarmRinging ? '#ff0033' : '#00ff66', fontSize: '12px' }}>
-              {isAnyAlarmRinging ? "⚠️ THREAT DETECTED" : "● SYSTEM HEALTHY"}
+          <div className="bottom-status-strip">
+            <div className="status-box">
+              <Icons.Warning color="#ff0d00" />
+              <div className="s-text">
+                <div className="s-title">ALERT STATUS</div>
+                <div className={`s-val ${isAnyAlarmRinging ? 'highlight-red' : 'highlight-green'}`}>{isAnyAlarmRinging ? 'HIGH RISK' : 'NORMAL'}</div>
+              </div>
             </div>
-          </div>
-          
-          <div style={styles.videoWindowFrame}>
-            <img src="http://localhost:5000/video_feed" alt="Biometric Vector Feed" style={styles.responsiveImageFeed} />
-          </div>
-          
-          <div style={styles.summaryFooterStrip}>
-            <div>SAFETY BOUND: <span style={{color: isAnyAlarmRinging ? '#ff0033' : '#00ff66'}}>{isAnyAlarmRinging ? "RISK HIGHLIGHT" : "SECURE"}</span></div>
-            <div>STATUS: <span style={{color: '#00e5ff'}}>{stats.is_emergency_stop ? "LOCKED" : "MONITORING"}</span></div>
+
+            <div className="status-box center-box">
+              <div className="s-title">TOTAL ALERTS</div>
+              <div className="s-val huge-red">{stats.drowsy_events + stats.phone_events + stats.side_events}</div>
+            </div>
+
+            <div className="status-box right-box">
+              <div className="s-text">
+                <div className="s-title">SYSTEM STATUS</div>
+                <div className="s-val highlight-green">MONITORING ACTIVE</div>
+              </div>
+              <div className="glow-dot"></div>
+            </div>
           </div>
         </div>
-
       </div>
-
-      <style>{`
-        @keyframes ping {
-          0% { transform: scale(0.8); opacity: 1; }
-          100% { transform: scale(1.6); opacity: 0; }
-        }
-        @keyframes blink {
-          0% { background-color: rgba(13,15,19,0.8); }
-          100% { background-color: rgba(255, 0, 51, 0.25); box-shadow: 0 0 15px rgba(255,0,51,0.6); }
-        }
-      `}</style>
-
     </div>
   );
 }
-
-// ====================================================
-// DESIGN STYLE ARCHITECTURE (AUDI COCKPIT BLACK MATRIX)
-// ====================================================
-const styles = {
-  dashboardContainer: { backgroundColor: '#040405', color: '#ffffff', minHeight: '100vh', fontFamily: 'sans-serif', padding: '15px', boxSizing: 'border-box' },
-  topHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #121317', paddingBottom: '12px', marginBottom: '15px' },
-  brandTitle: { fontSize: '13px', fontWeight: 'bold', letterSpacing: '3px', color: '#7a7e8c' },
-  drivingModeBar: { border: '1px solid', padding: '8px 25px', borderRadius: '30px', display: 'flex', alignItems: 'center', backgroundColor: '#08090c', fontSize: '12px' },
-  pulseDot: { width: '8px', height: '8px', borderRadius: '50%', marginRight: '12px', display: 'inline-block' },
-  topRightWidgets: { fontSize: '12px', color: '#767a8a' },
-  mainGrid: { display: 'grid', gridTemplateColumns: '1.2fr 1.4fr', gap: '20px' },
-  leftControlPanel: { backgroundColor: '#08090c', border: '1px solid #14161f', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column' },
-  panelTitle: { fontSize: '11px', letterSpacing: '2px', color: '#565a69', fontWeight: 'bold', marginBottom: '15px' },
-  microRow: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '15px' },
-  microCard: { 
-    backgroundColor: '#0f1117', border: '1px solid #1c1f2b', borderRadius: '6px', padding: '6px', textAlign: 'center',
-    h5: { margin: '0', fontSize: '9px', color: '#555' }, p: { margin: '0', fontSize: '13px', fontWeight: 'bold', color: '#00e5ff' }
-  },
-  gaugeContainerRow: { display: 'flex', justifyContent: 'space-between', margin: '15px 0', gap: '10px' },
-  gaugeWrapper: { flex: 1, display: 'flex', justifyContent: 'center' },
-  circularGaugeOuter: { width: '105px', height: '105px', borderRadius: '50%', borderWidth: '3px', borderStyle: 'solid', display: 'flex', alignItems: 'center', justifyCenter: 'center', backgroundColor: '#0b0d12', transition: 'all 0.2s ease', justifyContent: 'center' },
-  gaugeInnerContent: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  gaugeLabel: { fontSize: '8px', color: '#5a6070', letterSpacing: '1px' },
-  gaugeValue: { fontSize: '24px', fontWeight: 'bold', margin: '2px 0' },
-  gaugeMax: { fontSize: '9px', color: '#414654' },
-  linearStatusSection: { backgroundColor: '#0f1117', borderRadius: '8px', padding: '12px', margin: '10px 0', border: '1px solid #1c1f2b' },
-  linearRow: { display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between', fontSize: '12px', padding: '6px 0', color: '#a2a6b0' },
-  bottomIconRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' },
-  actionCard: { border: '1px solid', borderRadius: '8px', padding: '10px', display: 'flex', alignItems: 'center' },
-  overrideButton: { marginTop: '15px', padding: '12px', backgroundColor: '#ff0033', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', letterSpacing: '1px' },
-  rightFeedPanel: { backgroundColor: '#08090c', border: '1px solid #14161f', borderRadius: '12px', padding: '20px' },
-  feedHeaderRow: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#7a7e8c', marginBottom: '12px' },
-  videoWindowFrame: { backgroundColor: '#000', border: '1px solid #1c1f2b', borderRadius: '8px', overflow: 'hidden' },
-  responsiveImageFeed: { width: '100%', height: 'auto', display: 'block' },
-  summaryFooterStrip: { backgroundColor: '#0f1117', border: '1px solid #1c1f2b', borderRadius: '8px', padding: '12px', marginTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }
-};
 
 export default App;
