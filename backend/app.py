@@ -208,7 +208,7 @@ def generate_frames():
                         
                     # 3. PHONE / LOOK DOWN CONDITION (SENSITIVE)
                     # If head pitch is low or iris gaze is very low, it's a phone distraction
-                    is_looking_at_phone = (vertical_ratio < 0.90 or v_gaze > 0.58)
+                    is_looking_at_phone = (vertical_ratio < 0.90 or v_gaze > 0.65)
                     
                     if is_looking_at_phone and not is_both_eyes_closed and not is_looking_sideways:
                         phone_counter += 1
@@ -227,16 +227,23 @@ def generate_frames():
                                 (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 0), 2)
 
                     # --- TRIGGER SYSTEM ALERTS ---
+                    
+                    # 1. Drowsy Alert Fix
+                    if drowsy_counter == DROWSY_LIMIT:
+                        stats["drowsy"] += 1 # Count increases only ONCE per event
                     if drowsy_counter >= DROWSY_LIMIT:
-                        stats["drowsy"] += 1
                         cv2.putText(image, "DROWSY ALERT!", (30, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
                     
+                    # 2. Phone Alert Fix
+                    if phone_counter == PHONE_LIMIT:
+                        stats["phone"] += 1 # Count increases only ONCE per event
                     if phone_counter >= PHONE_LIMIT:
-                        stats["phone"] += 1
                         cv2.putText(image, "PHONE / DOWN ALERT!", (30, 200), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 165, 255), 3)
                     
+                    # 3. Side Distraction Alert Fix
+                    if side_counter == SIDE_LIMIT:
+                        stats["side"] += 1 # Count increases only ONCE per event
                     if side_counter >= SIDE_LIMIT:
-                        stats["side"] += 1
                         cv2.putText(image, "SIDE DISTRACTION!", (30, 250), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 255), 3)
 
                     # Draw Mesh Contours
