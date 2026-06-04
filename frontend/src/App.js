@@ -84,6 +84,9 @@ function App() {
   });
 
   const [currentTime, setCurrentTime] = useState('');
+  
+  // Audio state for alarms
+  const [alarmAudio] = useState(new Audio('/alarm.wav')); 
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -106,9 +109,26 @@ function App() {
   const isDrowsyActive = stats.current_drowsy_score >= 10;
   const isPhoneActive = stats.current_phone_score >= 12;
   const isSideActive = stats.current_side_score >= 75;
-  const isAnyAlarmRinging = isDrowsyActive || isPhoneActive || isSideActive;
+  const isAnyAlarmRinging = isDrowsyActive || isPhoneActive || isSideActive || stats.is_emergency_stop;
   
+  // Play/Stop Audio Logic
+  useEffect(() => {
+    if (isAnyAlarmRinging) {
+      alarmAudio.play().catch(e => console.log("Audio play blocked by browser. Please interact with the page first."));
+    } else {
+      alarmAudio.pause();
+      alarmAudio.currentTime = 0;
+    }
+  }, [isAnyAlarmRinging, alarmAudio]);
+
   const mainColor = isAnyAlarmRinging ? '#ff0d00' : '#00ff33';
+
+  // Manual Reset Function for Emergency Stop
+  const handleReset = () => {
+    axios.post('http://localhost:5000/api/reset')
+      .then(res => console.log("System Reset Successful"))
+      .catch(err => console.log("Error resetting system", err));
+  };
 
   return (
     <div className="dashboard-container">
@@ -119,10 +139,10 @@ function App() {
           <span className="brand-text"><strong>DRIVER</strong> SAFETY AI</span>
         </div>
         
-        <div className={`driving-mode-badge ${isAnyAlarmRinging ? 'alarm-active' : 'mode-active'}`}>
+        <div className={`driving-mode-badge ${stats.is_emergency_stop ? 'alarm-active' : isAnyAlarmRinging ? 'alarm-active' : 'mode-active'}`}>
           <div className="radar-icon">
-            <Icons.Radar color={mainColor} />
-            <div className="radar-ping" style={{borderColor: mainColor}}></div>
+            <Icons.Radar color={stats.is_emergency_stop ? '#ff0d00' : mainColor} />
+            <div className="radar-ping" style={{borderColor: stats.is_emergency_stop ? '#ff0d00' : mainColor}}></div>
           </div>
           <span className="mode-text">
             {stats.is_emergency_stop ? "EMERGENCY SHUTDOWN" : isAnyAlarmRinging ? "WARNING: ALARM ACTIVE" : "DRIVING MODE ACTIVE"}
@@ -130,7 +150,7 @@ function App() {
         </div>
 
         <div className="header-right">
-          <span className="time-text">{currentTime} AM</span>
+          <span className="time-text">{currentTime}</span>
           <span className="network-text">4G</span>
           <Icons.Signal />
           <Icons.Bluetooth />
@@ -191,7 +211,7 @@ function App() {
               </div>
             </div>
 
-            {/* SIDE EYE (Kept as 3rd gauge per user request) */}
+            {/* SIDE EYE */}
             <div className={`gauge-container ${isSideActive ? 'gauge-green-active' : 'gauge-green'}`}>
               <div className="gauge-circle">
                 <svg viewBox="0 0 100 100" className="gauge-svg">
@@ -243,11 +263,13 @@ function App() {
               </div>
             </div>
 
-            <div className="action-card auto-stop-card">
-              <div className="a-icon"><Icons.Wheel color="#00e5ff" /></div>
+            <div className="action-card auto-stop-card" onClick={handleReset} style={{ borderColor: stats.is_emergency_stop ? '#ff0d00' : '' }}>
+              <div className="a-icon"><Icons.Wheel color={stats.is_emergency_stop ? "#ff0d00" : "#00e5ff"} /></div>
               <div className="a-text">
-                <div className="a-title">AUTO-STOP</div>
-                <div className="a-sub">TAKE A BREAK</div>
+                <div className="a-title" style={{ color: stats.is_emergency_stop ? "#ff0d00" : "white" }}>
+                  {stats.is_emergency_stop ? "RESET SYSTEM" : "AUTO-STOP"}
+                </div>
+                <div className="a-sub">{stats.is_emergency_stop ? "CLICK TO RESTART" : "SYSTEM OK"}</div>
               </div>
             </div>
           </div>
@@ -268,7 +290,7 @@ function App() {
             
             <div className="feed-footer">
               <div className="ff-stats">L.EAR: <strong>{stats.l_ear.toFixed(2)}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; R.EAR: <strong>{stats.r_ear.toFixed(2)}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; V.GAZE: <strong>{stats.v_gaze.toFixed(2)}</strong></div>
-              <div className="ff-right">FPS: <strong>30</strong> &nbsp;&nbsp;&nbsp;&nbsp; STATUS: <strong className="highlight-green">OK</strong></div>
+              <div className="ff-right">FPS: <strong>30</strong> &nbsp;&nbsp;&nbsp;&nbsp; STATUS: <strong className={stats.is_emergency_stop ? "highlight-red" : "highlight-green"}>{stats.is_emergency_stop ? "KILLED" : "OK"}</strong></div>
             </div>
           </div>
 
