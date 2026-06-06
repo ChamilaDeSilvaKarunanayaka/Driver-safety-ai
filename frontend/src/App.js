@@ -86,7 +86,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState('');
   
   // Audio state for alarms
-  const [alarmAudio] = useState(new Audio('/alarm.wav')); 
+  const alarmAudioRef = React.useRef(new Audio('/alarm.mp3')); 
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -113,13 +113,19 @@ function App() {
   
   // Play/Stop Audio Logic
   useEffect(() => {
-    if (isAnyAlarmRinging) {
-      alarmAudio.play().catch(e => console.log("Audio play blocked by browser. Please interact with the page first."));
-    } else {
-      alarmAudio.pause();
-      alarmAudio.currentTime = 0;
-    }
-  }, [isAnyAlarmRinging, alarmAudio]);
+  const audio = alarmAudioRef.current;
+  if (!audio) return;
+
+  if (isAnyAlarmRinging) {
+    audio.loop = true; // Ring continuously until reset
+    audio.play().catch(e => {
+      console.log("Browser blocked audio. Please click anywhere on the page.");
+    });
+  } else {
+    audio.pause();
+    audio.currentTime = 0; // Reset to start for next time it plays
+  }
+}, [isAnyAlarmRinging]);
 
   const mainColor = isAnyAlarmRinging ? '#ff0d00' : '#00ff33';
 
