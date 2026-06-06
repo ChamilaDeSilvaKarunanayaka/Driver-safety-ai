@@ -11,22 +11,22 @@ const Icons = {
       <path d="M2 12l10 5 10-5"></path>
     </svg>
   ),
-  Radar: ({ color }) => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  Radar: ({ color, ...props }) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <circle cx="12" cy="12" r="10"/>
       <circle cx="12" cy="12" r="6"/>
       <circle cx="12" cy="12" r="2"/>
       <path d="M12 2v20M2 12h20"/>
     </svg>
   ),
-  Bell: ({ color }) => (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  Bell: ({ color, ...props }) => (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
       <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
     </svg>
   ),
-  Wheel: ({ color }) => (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  Wheel: ({ color, ...props }) => (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <circle cx="12" cy="12" r="10"></circle>
       <path d="M12 2v10"></path>
       <path d="m12 12 8.5 5"></path>
@@ -34,35 +34,35 @@ const Icons = {
       <path d="M20.5 7A10.5 10.5 0 0 0 12 1.5"></path>
     </svg>
   ),
-  Shield: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  Shield: (props) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
     </svg>
   ),
-  Bluetooth: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  Bluetooth: (props) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="m6.5 6.5 11 11L12 23V1l5.5 5.5-11 11"></path>
     </svg>
   ),
-  Signal: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  Signal: (props) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"></path>
     </svg>
   ),
-  Warning: ({ color }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  Warning: ({ color, ...props }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
       <line x1="12" y1="9" x2="12" y2="13"></line>
       <line x1="12" y1="17" x2="12.01" y2="17"></line>
     </svg>
   ),
-  Phone: ({ color }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  Phone: ({ color, ...props }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
     </svg>
   ),
-  Eye: ({ color }) => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  Eye: ({ color, ...props }) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
       <circle cx="12" cy="12" r="3"></circle>
     </svg>
@@ -159,6 +159,7 @@ function App() {
       </div>
 
       <div className="main-grid">
+        
         {/* LEFT PANEL */}
         <div className="left-panel">
           <div className="panel-title">DRIVER SAFETY DASHBOARD</div>
@@ -190,7 +191,7 @@ function App() {
                   <div className="g-title">DROWSY</div>
                   <div className="g-value">{stats.current_drowsy_score}</div>
                   <div className="g-max">/ 10</div>
-                  <div className="g-icon"><Icons.Warning color={isDrowsyActive ? '#ff0d00' : '#444'} /></div>
+                  <div className="g-icon"><Icons.Warning color={isDrowsyActive ? '#ff0d00' : '#444'} width="24" height="24" /></div>
                 </div>
               </div>
             </div>
@@ -206,7 +207,7 @@ function App() {
                   <div className="g-title">PHONE USAGE</div>
                   <div className="g-value">{stats.current_phone_score}</div>
                   <div className="g-max">/ 12</div>
-                  <div className="g-icon"><Icons.Phone color={isPhoneActive ? '#00e5ff' : '#444'} /></div>
+                  <div className="g-icon"><Icons.Phone color={isPhoneActive ? '#00e5ff' : '#444'} width="24" height="24" /></div>
                 </div>
               </div>
             </div>
@@ -222,7 +223,7 @@ function App() {
                   <div className="g-title">SIDE EYE</div>
                   <div className="g-value">{stats.current_side_score}</div>
                   <div className="g-max">/ 75</div>
-                  <div className="g-icon"><Icons.Eye color={isSideActive ? '#00ff33' : '#444'} /></div>
+                  <div className="g-icon"><Icons.Eye color={isSideActive ? '#00ff33' : '#444'} width="24" height="24" /></div>
                 </div>
               </div>
             </div>
@@ -256,7 +257,7 @@ function App() {
 
           <div className="bottom-actions">
             <div className={`action-card alarm-card ${isAnyAlarmRinging ? 'ringing' : ''}`}>
-              <div className="a-icon"><Icons.Bell color="#ff0d00" /></div>
+              <div className="a-icon"><Icons.Bell color="#ff0d00" width="48" height="48" /></div>
               <div className="a-text">
                 <div className="a-title">ALARM</div>
                 <div className="a-sub">HIGH ALERT</div>
@@ -264,7 +265,7 @@ function App() {
             </div>
 
             <div className="action-card auto-stop-card" onClick={handleReset} style={{ borderColor: stats.is_emergency_stop ? '#ff0d00' : '' }}>
-              <div className="a-icon"><Icons.Wheel color={stats.is_emergency_stop ? "#ff0d00" : "#00e5ff"} /></div>
+              <div className="a-icon"><Icons.Wheel color={stats.is_emergency_stop ? "#ff0d00" : "#00e5ff"} width="48" height="48" /></div>
               <div className="a-text">
                 <div className="a-title" style={{ color: stats.is_emergency_stop ? "#ff0d00" : "white" }}>
                   {stats.is_emergency_stop ? "RESET SYSTEM" : "AUTO-STOP"}
