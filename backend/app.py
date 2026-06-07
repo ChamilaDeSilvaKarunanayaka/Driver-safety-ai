@@ -42,12 +42,12 @@ LEFT_EYE_CROP_INDICES = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE_CROP_INDICES = [362, 385, 387, 263, 373, 380]
 
 # --- 🎯 TUNED HYPERPARAMETERS FOR PRODUCTION ---
-EAR_THRESHOLD = 0.17           
+EAR_THRESHOLD = 0.13           
 AI_THRESHOLD = 0.75            
 
-DROWSY_LIMIT = 10        
+DROWSY_LIMIT = 15        
 PHONE_LIMIT = 12         
-SIDE_LIMIT = 75          
+SIDE_LIMIT = 85          
 
 app = Flask(__name__)
 CORS(app) 

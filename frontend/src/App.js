@@ -129,7 +129,7 @@ function App() {
     };
   }, []);
 
-  const isDrowsyActive = stats.current_drowsy_score >= 10;
+  const isDrowsyActive = stats.current_drowsy_score >= 15;
   const isPhoneActive = stats.current_phone_score >= 12;
   const isSideActive = stats.current_side_score >= 75;
   const isAnyAlarmRinging = isDrowsyActive || isPhoneActive || isSideActive || stats.is_emergency_stop;
@@ -226,12 +226,12 @@ function App() {
               <div className="gauge-circle">
                 <svg viewBox="0 0 100 100" className="gauge-svg">
                   <circle cx="50" cy="50" r="45" className="gauge-bg" />
-                  <circle cx="50" cy="50" r="45" className="gauge-progress" strokeDasharray="283" strokeDashoffset={283 - (Math.min(10, stats.current_drowsy_score)/10)*283} />
+                  <circle cx="50" cy="50" r="45" className="gauge-progress" strokeDasharray="283" strokeDashoffset={283 - (Math.min(15, stats.current_drowsy_score)/15)*283} />
                 </svg>
                 <div className="gauge-content">
                   <div className="g-title">DROWSY</div>
                   <div className="g-value">{stats.current_drowsy_score}</div>
-                  <div className="g-max">/ 10</div>
+                  <div className="g-max">/ 15</div>
                   <div className="g-icon"><Icons.Warning color={isDrowsyActive ? '#ff0d00' : '#444'} width="24" height="24" /></div>
                 </div>
               </div>
