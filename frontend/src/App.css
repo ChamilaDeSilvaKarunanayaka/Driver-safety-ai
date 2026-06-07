@@ -54,6 +54,12 @@ body {
   padding-left: 15px;
 }
 
+.brand-logo {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+}
+
 .brand-text {
   font-size: 13px;
   letter-spacing: 2px;
@@ -528,4 +534,105 @@ body {
   background: var(--neon-green);
   border-radius: 50%;
   box-shadow: 0 0 10px var(--neon-green);
+}
+
+/* LOADING SCREEN */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0c0d14 0%, #030304 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.loading-logo {
+  width: 450px;
+  height: 450px;
+  object-fit: contain;
+  margin-bottom: 20px;
+  animation: logoPulse 2s infinite ease-in-out;
+  filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.2));
+}
+
+@keyframes logoPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.2));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.5));
+  }
+}
+
+.loading-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--text-white);
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+.loading-title .highlight-cyan {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+.loading-bar-container {
+  width: 300px;
+  height: 4px;
+  background: #111216;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.loading-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+  box-shadow: 0 0 10px var(--neon-cyan);
+  animation: fillProgress 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fillProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.loading-status {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  animation: textFlicker 1.5s infinite alternate;
+}
+
+@keyframes textFlicker {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }

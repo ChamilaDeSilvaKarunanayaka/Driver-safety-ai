@@ -5,11 +5,7 @@ import './App.css';
 // SVG Icons
 const Icons = {
   MainLogo: () => (
-    <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-      <path d="M2 17l10 5 10-5"></path>
-      <path d="M2 12l10 5 10-5"></path>
-    </svg>
+    <img src="/logoDSA.png" alt="Driver Safety AI" className="brand-logo" />
   ),
   Radar: ({ color, ...props }) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -85,10 +81,34 @@ function App() {
 
   const [currentTime, setCurrentTime] = useState('');
   
+  // Loading Screen States
+  const [loadingVisible, setLoadingVisible] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState("Establishing connection...");
+  
   // Audio state for alarms
   const alarmAudioRef = React.useRef(new Audio('/alarm.mp3')); 
 
   useEffect(() => {
+    // Initial loading sequence
+    const statusSequence = [
+      { time: 600, text: "Initializing AI models..." },
+      { time: 1400, text: "Calibrating camera feed..." },
+      { time: 2000, text: "System ready!" }
+    ];
+    
+    const statusTimers = statusSequence.map(seq => 
+      setTimeout(() => setLoadingStatus(seq.text), seq.time)
+    );
+
+    const fadeOutTimer = setTimeout(() => {
+      setFadeOut(true);
+    }, 2500);
+
+    const unmountTimer = setTimeout(() => {
+      setLoadingVisible(false);
+    }, 3000);
+
     const interval = setInterval(() => {
       axios.get('http://localhost:5000/api/stats')
         .then(res => setStats(res.data))
@@ -101,6 +121,9 @@ function App() {
     }, 1000);
 
     return () => {
+      statusTimers.forEach(clearTimeout);
+      clearTimeout(fadeOutTimer);
+      clearTimeout(unmountTimer);
       clearInterval(interval);
       clearInterval(timeInterval);
     };
@@ -138,6 +161,18 @@ function App() {
 
   return (
     <div className="dashboard-container">
+      {loadingVisible && (
+        <div className={`loading-screen ${fadeOut ? 'fade-out' : ''}`}>
+          <div className="loading-content">
+            <img src="/logoDSA.png" alt="Driver Safety AI" className="loading-logo" />
+            <h1 className="loading-title">DRIVER <span className="highlight-cyan">SAFETY AI</span></h1>
+            <div className="loading-bar-container">
+              <div className="loading-bar-fill"></div>
+            </div>
+            <div className="loading-status">{loadingStatus}</div>
+          </div>
+        </div>
+      )}
       {/* TOP HEADER */}
       <div className="top-header">
         <div className="header-left">
