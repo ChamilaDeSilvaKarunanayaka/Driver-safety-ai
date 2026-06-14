@@ -169,13 +169,13 @@ The project was executed through a comprehensive pipeline:
 ### 🖥️ HUD Dashboard Interface (Active Monitoring)
 The React dashboard monitors real-time telemetry. In normal status, it glows neon green:
 
-<img src="image_68a428.png" alt="Driver Safety AI Dashboard" width="100%">
+<img width="1919" height="901" alt="Screenshot 2026-06-07 152939" src="https://github.com/user-attachments/assets/7b1bbeab-49ea-4813-8404-dc8d28560c43" />
 
 ---
 
 ### 🎥 Live Action Demo Video
 Click the badge below to watch the full demonstration video on LinkedIn. It shows the full flow from system loading, drowsiness alerts, mobile phone detection, the loud audio alarms, and the final emergency auto-stop reset loop!
 
-[![Watch the Demo Video](https://img.shields.io/badge/LinkedIn-Watch%20Demo%20Video-blue?style=for-the-badge&logo=linkedin)](YOUR_LINKEDIN_POST_URL_HERE)
+[![Watch the Demo Video](https://img.shields.io/badge/LinkedIn-Watch%20Demo%20Video-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/posts/dcdskarunanayaka_driversafetyai-artificialintelligence-computervision-ugcPost-7469439234030993409-07Ya/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAE51YIEBrTCtX1BSo373XMSL-9dyXkfWh1o)
 
 *(Alternatively, you can also watch the raw video file inside this repository: `demo_video.mp4`)*
